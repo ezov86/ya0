@@ -2,6 +2,7 @@
 #define LOG_H
 
 #include <stdint.h>
+#include "collections.h"
 
 typedef enum
 {
@@ -24,5 +25,7 @@ typedef struct
     }
 
 int log_msg(severity_t sev, char *filename, pos_t pos, char *str, ...);
+/* Print STRING with its lenght, doesn't stop on zeros. */
+void print_str(STRING str);
 
 #endif

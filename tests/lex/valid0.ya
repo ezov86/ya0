@@ -1,0 +1,28 @@
+// comm
+a	a _	_123		
+Ab_34a	AA	Z
+//
+CC ______
+%%%%%%%%%%
+1:1 comm ` comm`
+1:8 nl
+2:1 name `a`
+2:2 bl `	`
+2:5 name `a`
+2:6 bl ` `
+2:7 name `_`
+2:8 bl `	`
+2:9 name `_123`
+2:13 bl `		`
+2:21 nl
+3:1 name `Ab_34a`
+3:7 bl `	`
+3:9 name `AA`
+3:11 bl `	`
+3:13 name `Z`
+3:14 nl
+4:1 comm ``
+4:3 nl
+5:1 name `CC`
+5:3 bl ` `
+5:4 name `______`

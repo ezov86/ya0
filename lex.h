@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "vec.h"
+#include "collections.h"
 #include "log.h"
 
 typedef enum
@@ -28,7 +28,7 @@ typedef struct
     {
         int64_t i;
         float f;
-        char *s;
+        STRING s;
     } val;
     enum
     {
@@ -93,9 +93,11 @@ typedef enum
     /* !=  */ PUNC_NEQ = 0x1B,
     /* :   */ PUNC_COLON = 0x1C,
     /* \   */ PUNC_LAMBDA = 0x1D,
+    /* ... */ PUNC_PERIOD = 0x1E,
 
-    PUNC_BIT_FLAG = 0x40000000,
-    PUNC_ASSIGN_FLAG = 0x80000000
+    /* Flags can be used with other punctuators. */
+    PUNC_BIT_FLAG = 0x100,
+    PUNC_ASSIGN_FLAG = 0x200
 } punc_t;
 
 extern pos_t lex_tok_pos;
@@ -106,7 +108,7 @@ typedef enum
 {
     LEX_INGORE_WS = 1,
     LEX_UNESCAPE_STR = 1 << 1,
-    
+
     /* Табуляция по 4 символа по-умолчанию. */
     LEX_TAB2 = 1 << 2,
     LEX_TAB8 = 1 << 3,
@@ -114,7 +116,7 @@ typedef enum
     LEX_PARSE_NUMS = 1 << 4,
 } lex_options_t;
 
-void lex_init(char *_filename, svec_t source_buf, lex_options_t _options);
+void lex_init(char *_filename, STRING _source, lex_options_t _options);
 void lex_next(lexeme_t expected);
 
 #endif

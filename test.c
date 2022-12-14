@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "lex.h"
+#include "log.h"
 
 #define CASE(a, b) \
     case (a):      \
@@ -46,7 +47,7 @@ static void dump_token(token_t tok, pos_t pos)
         assert(0);
     }
 
-    printf("%s ", s);
+    printf("%s", s);
 
     if (tok.lexeme == LEX_KEYWORD)
     {
@@ -125,13 +126,15 @@ static void dump_token(token_t tok, pos_t pos)
         switch (tok.val_type)
         {
         case TOK_VAL_STR:
-            printf("`%s`\n", tok.val.s);
+            printf(" `");
+            print_str(tok.val.s);
+            puts("`");
             break;
         case TOK_VAL_INT64:
-            printf("`%ld`\n", tok.val.i);
+            printf(" `%ld`\n", tok.val.i);
             break;
         case TOK_VAL_FLOAT:
-            printf("`%f`\n", tok.val.f);
+            printf(" `%f`\n", tok.val.f);
             break;
         case TOK_VAL_NONE:
             puts("");
@@ -141,16 +144,19 @@ static void dump_token(token_t tok, pos_t pos)
         }
         return;
     }
-    printf("`%s`\n", s);
+    // if (s == NULL)
+    //     puts("``");
+    // else
+    //     printf("`%s`\n", s);
 }
 
 #undef F_OPER
 #undef CASE
 #undef ASS_BIT_OPER
 
-void dump_lex(svec_t source)
+void dump_lex(STRING source)
 {
-    lex_init(NULL, source, 0);
+    lex_init(NULL, source, LEX_UNESCAPE_STR);
 
     lex_next(LEX_ANY);
 

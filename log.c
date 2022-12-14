@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <unistd.h>
 
 int log_msg(severity_t sev, char *filename, pos_t pos, char *str, ...)
 {
@@ -40,4 +41,12 @@ int log_msg(severity_t sev, char *filename, pos_t pos, char *str, ...)
     vprintf(str, args);
     printf(".\n");
     va_end(args);
+}
+
+void print_str(STRING str) {
+    /* May be slow, but works on any platform. */
+    char *c = STR_DATA(str);
+    for (size_t i = 0; i < str->len; i++) {
+        putchar(c[i]);
+    }
 }

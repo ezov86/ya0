@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mem.h"
 #include "log.h"
@@ -31,6 +32,7 @@ void *safe_malloc(size_t s)
 void *safe_realloc(void *ptr, size_t s)
 {
     void *p = realloc(ptr, s);
+
     if (p == NULL)
     {
         log_msg(LOG_ERR, NULL, NO_POS, "realloc error");

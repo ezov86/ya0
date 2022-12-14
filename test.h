@@ -1,8 +1,8 @@
 #ifndef YA_TEST_H
 #define YA_TEST_H
 
-#include "vec.h"
+#include "collections.h"
 
-void dump_lex(svec_t source);
+void dump_lex(STRING source);
 
 #endif

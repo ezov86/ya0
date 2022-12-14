@@ -3,7 +3,7 @@ project(ya C)
 
 set(CMAKE_C_STANDARD 99)
 
-set(CMAKE_C_FLAGS "-g -std=c99")
+set(CMAKE_C_FLAGS "-g -std=c99 -pedantic-errors -DDEBUG")
 # set(CMAKE_C_FLAGS "-O3 -m32 -std=c99")
 
 add_executable(ya main.c log.c mem.c vec.c lex.c test.c)
