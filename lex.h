@@ -108,14 +108,12 @@ extern bool lex_error;
 
 typedef enum
 {
-    LEX_INGORE_WS = 1,
+    LEX_PARSE_NUMS = 1,
     LEX_UNESCAPE_STR = 1 << 1,
 
     /* Табуляция по 4 символа по-умолчанию. */
     LEX_TAB2 = 1 << 2,
     LEX_TAB8 = 1 << 3,
-
-    LEX_PARSE_NUMS = 1 << 4,
 } lex_options_t;
 
 void lex_init(char *_filename, string_t *_source, lex_options_t _options);

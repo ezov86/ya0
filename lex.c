@@ -166,14 +166,6 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
 
 static bool eat_blank()
 {
-    if (options & LEX_INGORE_WS)
-    {
-        while (cur_c == ' ' || cur_c == '\t')
-            nextc();
-
-        return false;
-    }
-
     string_t *str = str_new();
     while (cur_c == ' ' || cur_c == '\t')
     {
@@ -203,14 +195,6 @@ static bool eat_comment()
 
     nextc();
 
-    if (options & LEX_INGORE_WS)
-    {
-        while (cur_c != '\n' && cur_c != 0)
-            nextc();
-
-        return false;
-    }
-
     string_t *str = str_new();
     while (cur_c != '\n' && cur_c != 0)
     {
@@ -229,9 +213,6 @@ static bool eat_newline()
         return false;
 
     nextc();
-
-    if (options & LEX_INGORE_WS)
-        return false;
 
     save_tok(LEX_NEWLINE, TOK_VAL_NONE, 0);
 
