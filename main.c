@@ -28,7 +28,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    STRING buf = str_new();
+    string_t *buf = str_new();
     int c;
     while ((c = fgetc(f)) != EOF)
     {

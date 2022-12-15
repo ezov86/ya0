@@ -3,6 +3,6 @@
 
 #include "collections.h"
 
-void dump_lex(STRING source);
+void dump_lex(string_t *source);
 
 #endif

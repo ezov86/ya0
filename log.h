@@ -25,7 +25,7 @@ typedef struct
     }
 
 int log_msg(severity_t sev, char *filename, pos_t pos, char *str, ...);
-/* Print STRING with its lenght, doesn't stop on zeros. */
-void print_str(STRING str);
+/* Print string_t with its lenght, doesn't stop on zeros. */
+void print_str(string_t *str);
 
 #endif

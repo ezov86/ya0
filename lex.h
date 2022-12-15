@@ -22,21 +22,23 @@ typedef enum
     LEX_ANY = 0
 } lexeme_t;
 
+typedef enum
+{
+    TOK_VAL_NONE,
+    TOK_VAL_INT64,
+    TOK_VAL_FLOAT,
+    TOK_VAL_STR
+} lex_val_type_t;
+
 typedef struct
 {
     union
     {
         int64_t i;
         float f;
-        STRING s;
+        string_t *s;
     } val;
-    enum
-    {
-        TOK_VAL_NONE,
-        TOK_VAL_INT64,
-        TOK_VAL_FLOAT,
-        TOK_VAL_STR
-    } val_type;
+    lex_val_type_t val_type;
     lexeme_t lexeme;
 } token_t;
 
@@ -116,7 +118,7 @@ typedef enum
     LEX_PARSE_NUMS = 1 << 4,
 } lex_options_t;
 
-void lex_init(char *_filename, STRING _source, lex_options_t _options);
+void lex_init(char *_filename, string_t *_source, lex_options_t _options);
 void lex_next(lexeme_t expected);
 
 #endif

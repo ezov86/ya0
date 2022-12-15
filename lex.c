@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdarg.h>
 
 pos_t lex_tok_pos;
 token_t lex_tok;
@@ -12,7 +13,7 @@ bool lex_error;
 static char *filename;
 static uint16_t line, col;
 
-static STRING source;
+static string_t *source;
 
 static lex_options_t options;
 
@@ -26,7 +27,7 @@ static int prev_col;
 
 static bool cur_tok_error;
 
-void lex_init(char *_filename, STRING _source, lex_options_t _options)
+void lex_init(char *_filename, string_t *_source, lex_options_t _options)
 {
     lex_error = false;
 
@@ -35,8 +36,6 @@ void lex_init(char *_filename, STRING _source, lex_options_t _options)
     col = 1;
 
     source = _source;
-
-    (void *)(source + 1);
 
     if (source->len > 0)
         cur_c = STR_DATA(_source)[0];
@@ -130,6 +129,7 @@ static void backc()
     update_pos(false);
 }
 
+/* Be careful in `if` statements. */
 #define ERROR(fmt, ...)                                              \
     {                                                                \
         cur_tok_error = true;                                        \
@@ -137,10 +137,32 @@ static void backc()
         log_msg(LOG_ERR, filename, lex_tok_pos, fmt, ##__VA_ARGS__); \
     }
 
-#define SAVE_TOK(_lexeme, _val_type, _val_f, _val) \
-    lex_tok.lexeme = _lexeme;                      \
-    lex_tok.val_type = _val_type;                  \
-    lex_tok.val._val_f = _val;
+static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
+{
+    lex_tok.lexeme = lexeme;
+    lex_tok.val_type = val_type;
+
+    switch (val_type)
+    {
+    case TOK_VAL_INT64:
+        lex_tok.val.i = *(int64_t *)value;
+        break;
+
+    case TOK_VAL_STR:
+        lex_tok.val.s = *(string_t **)value;
+        break;
+
+    case TOK_VAL_FLOAT:
+        lex_tok.val.f = *(float *)value;
+        break;
+
+    case TOK_VAL_NONE:
+        break;
+
+    default:
+        assert(0);
+    }
+}
 
 static bool eat_blank()
 {
@@ -152,7 +174,7 @@ static bool eat_blank()
         return false;
     }
 
-    STRING str = str_new();
+    string_t *str = str_new();
     while (cur_c == ' ' || cur_c == '\t')
     {
         str_push(str, cur_c);
@@ -162,7 +184,7 @@ static bool eat_blank()
     if (str->len == 0)
         return false;
 
-    SAVE_TOK(LEX_BLANK, TOK_VAL_STR, s, str)
+    save_tok(LEX_BLANK, TOK_VAL_STR, &str);
 
     return true;
 }
@@ -189,14 +211,14 @@ static bool eat_comment()
         return false;
     }
 
-    STRING str = str_new();
+    string_t *str = str_new();
     while (cur_c != '\n' && cur_c != 0)
     {
         str_push(str, cur_c);
         nextc();
     }
 
-    SAVE_TOK(LEX_COMMENT, TOK_VAL_STR, s, str)
+    save_tok(LEX_COMMENT, TOK_VAL_STR, &str);
 
     return true;
 }
@@ -211,7 +233,7 @@ static bool eat_newline()
     if (options & LEX_INGORE_WS)
         return false;
 
-    SAVE_TOK(LEX_NEWLINE, TOK_VAL_NONE, i, 0)
+    save_tok(LEX_NEWLINE, TOK_VAL_NONE, 0);
 
     return true;
 }
@@ -231,14 +253,14 @@ static bool eat_name()
     if (!(is_alpha(cur_c) || cur_c == '_'))
         return false;
 
-    STRING str = str_new();
+    string_t *str = str_new();
     do
     {
         str_push(str, cur_c);
         nextc();
     } while (is_alpha(cur_c) || cur_c == '_' || is_dig(cur_c));
 
-    SAVE_TOK(LEX_NAME, TOK_VAL_STR, s, str)
+    save_tok(LEX_NAME, TOK_VAL_STR, &str);
 
     return true;
 }
@@ -266,7 +288,7 @@ static int64_t str_to_i(const char *str, int base)
     return result;
 }
 
-static void escape_seq(STRING str)
+static void escape_seq(string_t *str)
 {
     /* Number. */
     if (cur_c == 'x')
@@ -340,7 +362,7 @@ static bool eat_string()
 
     nextc();
 
-    STRING str = str_new();
+    string_t *str = str_new();
     while (cur_c != quote)
     {
         switch (cur_c)
@@ -368,7 +390,7 @@ static bool eat_string()
     /* Closing quote. */
     nextc();
 
-    SAVE_TOK(LEX_STRING, TOK_VAL_STR, s, str)
+    save_tok(LEX_STRING, TOK_VAL_STR, &str);
 
     return true;
 }

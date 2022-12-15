@@ -43,7 +43,7 @@ int log_msg(severity_t sev, char *filename, pos_t pos, char *str, ...)
     va_end(args);
 }
 
-void print_str(STRING str) {
+void print_str(string_t *str) {
     /* May be slow, but works on any platform. */
     char *c = STR_DATA(str);
     for (size_t i = 0; i < str->len; i++) {

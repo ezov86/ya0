@@ -20,7 +20,7 @@ typedef struct
 vec_t *vec_new();
 vec_t *vec_append(vec_t *vec, void *data, size_t size);
 
-typedef vec_t *STRING;
+typedef vec_t string_t;
 
 #define str_new() vec_new()
 #define str_push(str, c) vec_append(str, &c, sizeof(char))
