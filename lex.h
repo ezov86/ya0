@@ -37,7 +37,7 @@ typedef struct
     {
         int64_t i;
         float f;
-        string_t *s;
+        string_t s;
     } val;
     lex_val_type_t val_type;
     lexeme_t lexeme;

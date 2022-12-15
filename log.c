@@ -45,7 +45,7 @@ int log_msg(severity_t sev, char *filename, pos_t pos, char *str, ...)
 
 void print_str(string_t *str) {
     /* May be slow, but works on any platform. */
-    char *c = STRING_DATA(str);
+    char *c = STRING_DATA(*str);
     for (size_t i = 0; i < str->len; i++) {
         putchar(c[i]);
     }

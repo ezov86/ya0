@@ -175,7 +175,7 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
         break;
 
     case TOK_VAL_STR:
-        lex_tok.val.s = *(string_t **)value;
+        lex_tok.val.s = *(string_t *)value;
         break;
 
     case TOK_VAL_FLOAT:
@@ -192,14 +192,14 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
 
 static bool eat_blank()
 {
-    string_t *str = string_new();
+    string_t str = STRING_NEW();
     while (cur_c == ' ' || cur_c == '\t')
     {
-        str = string_push(str, cur_c);
+        string_push(&str, cur_c);
         nextc();
     }
 
-    if (str->len == 0)
+    if (str.len == 0)
         return false;
 
     save_tok(LEX_BLANK, TOK_VAL_STR, &str);
@@ -221,10 +221,10 @@ static bool eat_comment()
 
     nextc();
 
-    string_t *str = string_new();
+    string_t str = STRING_NEW();
     while (cur_c != '\n' && cur_c != 0)
     {
-        str = string_push(str, cur_c);
+        string_push(&str, cur_c);
         nextc();
     }
 
@@ -260,10 +260,10 @@ static bool eat_name()
     if (!(is_alpha(cur_c) || cur_c == '_'))
         return false;
 
-    string_t *str = string_new();
+    string_t str = STRING_NEW();
     do
     {
-        str = string_push(str, cur_c);
+        string_push(&str, cur_c);
         nextc();
     } while (is_alpha(cur_c) || cur_c == '_' || is_dig(cur_c));
 
@@ -311,12 +311,12 @@ static void escape_seq(string_t *str)
         {
             /* Overflow check is not needed (2 hex digits - max is 255). */
             uint8_t i = str_to_i(hex, 16);
-            str = string_push(str, i);
+            string_push(str, i);
         }
         else
         {
-            str = string_append(str, "\\x", 2);
-            str = string_append(str, hex, 2);
+            string_append(str, "\\x", 2);
+            string_append(str, hex, 2);
         }
 
         return;
@@ -326,8 +326,8 @@ static void escape_seq(string_t *str)
 
     if (!(options & LEX_UNESCAPE_STR))
     {
-        str = string_append(str, "\\", 2);
-        str = string_push(str, cur_c);
+        string_append(str, "\\", 2);
+        string_push(str, cur_c);
         return;
     }
 
@@ -357,7 +357,7 @@ static void escape_seq(string_t *str)
     }
 #undef CASE
 
-    str = string_push(str, unescaped);
+    string_push(str, unescaped);
 }
 
 static bool eat_string()
@@ -369,7 +369,7 @@ static bool eat_string()
 
     nextc();
 
-    string_t *str = string_new();
+    string_t str = STRING_NEW();
     while (cur_c != quote)
     {
         switch (cur_c)
@@ -384,11 +384,11 @@ static bool eat_string()
 
         case '\\':
             nextc();
-            escape_seq(str);
+            escape_seq(&str);
             break;
 
         default:
-            str = string_append(str, &cur_c, sizeof(char));
+            string_append(&str, &cur_c, sizeof(char));
         }
 
         nextc();

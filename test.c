@@ -127,7 +127,7 @@ static void dump_token(token_t tok, pos_t pos)
         {
         case TOK_VAL_STR:
             printf(" `");
-            print_str(tok.val.s);
+            print_str(&tok.val.s);
             puts("`");
             break;
         case TOK_VAL_INT64:
