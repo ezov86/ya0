@@ -2,6 +2,7 @@
 import os
 import re
 from subprocess import Popen, PIPE
+import tempfile
 
 HOME_DIR = '.'
 TEST_PATH = 'tests/'
@@ -73,12 +74,21 @@ def load_sample_data(path: str) -> list:
 
 def sample(path: str, stage: str):
     data = load_sample_data(os.path.join(HOME_DIR, TEST_PATH, stage, path))
-    path = os.path.join(HOME_DIR, TEST_PATH, stage, path)
-    process = Popen([os.path.join(HOME_DIR, BIN_PATH), '--test-' + stage], stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    stdout, stderr = process.communicate(input=data[0])
-    exit_code = process.wait()
 
-    assert stderr == b''
+    try:
+        data0_tmp = tempfile.NamedTemporaryFile(delete=True)
+        data0_tmp.write(data[0])
+        data0_tmp.flush()
+            
+        bin_path = os.path.join(HOME_DIR, BIN_PATH)
+        path = os.path.join(HOME_DIR, TEST_PATH, stage, path)
+        process = Popen([bin_path, data0_tmp.name], stdout=PIPE, stdin=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        exit_code = process.wait()
+    finally:
+        data0_tmp.close()
+
+    assert stderr == data[2]
     assert exit_code == 0
 
     # If encoding is possible, compare as string. If assertion fails, readable diff will be provided.

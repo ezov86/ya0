@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "collections.h"
 #include "log.h"
 
@@ -116,7 +117,7 @@ typedef enum
     LEX_TAB8 = 1 << 3,
 } lex_options_t;
 
-void lex_init(char *_filename, string_t *_source, lex_options_t _options);
+void lex_init(char *_filename, FILE *_src_file, lex_options_t _options);
 void lex_next(lexeme_t expected);
 
 #endif

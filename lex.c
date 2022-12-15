@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include "collections.h"
 #include "log.h"
 
@@ -14,7 +17,7 @@ bool lex_error;
 static char *filename;
 static uint16_t line, col;
 
-static string_t *source;
+static FILE *src_file;
 
 static lex_options_t options;
 
@@ -28,7 +31,7 @@ static int prev_col;
 
 static bool cur_tok_error;
 
-void lex_init(char *_filename, string_t *_source, lex_options_t _options)
+void lex_init(char *_filename, FILE *_src_file, lex_options_t _options)
 {
     lex_error = false;
 
@@ -36,10 +39,16 @@ void lex_init(char *_filename, string_t *_source, lex_options_t _options)
     line = 1;
     col = 1;
 
-    source = _source;
+    src_file = _src_file;
 
-    if (source->len > 0)
-        cur_c = STRING_DATA(_source)[0];
+    /* Peeking first character. */
+    int ic = getc(src_file);
+    if (ic != EOF)
+    {
+        cur_c = ic;
+        /* Return back if not EOF. */
+        // fseek(src_file, -1L, SEEK_CUR);
+    }
     else
         cur_c = 0;
 
@@ -110,24 +119,39 @@ static void nextc()
 {
     update_pos(true);
 
-    if (++src_i >= source->len)
+    int ic = getc(src_file);
+    if (ic == EOF)
     {
         cur_c = 0;
         return;
     }
 
-    cur_c = STRING_DATA(source)[src_i];
+    cur_c = ic;
 }
 
 static void backc()
 {
-    if (src_i <= 0)
+    if (ftell(src_file) == 0)
     {
+        /* Begin of file, so we ran out of it. */
         cur_c = 0;
         return;
     }
 
-    cur_c = STRING_DATA(source)[--src_i];
+    fseek(src_file, -1, SEEK_CUR);
+    int ic = getc(src_file);
+    if (ic == EOF)
+    {
+        /* Strange situation happened. */
+        cur_c = 0;
+        return;
+    }
+
+    /* ^^ getc() moves cursor forward in file stream, so go back again. */
+    fseek(src_file, -1, SEEK_CUR);
+
+    cur_c = ic;
+
     update_pos(false);
 }
 

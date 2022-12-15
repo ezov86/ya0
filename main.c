@@ -6,37 +6,25 @@
 
 int main(int argc, char **argv)
 {
-    FILE *f;
-    char *filename;
-
+    char *path;
     if (argc == 1)
-    {
-        f = fopen("tests/lex/valid00.ya", "r");
-        if (f == NULL)
-        {
-            log_msg(LOG_ERR, NULL, NO_POS, "cannot open file");
-            return -1;
-        }
-    }
+        path = "tests/lex/valid00.ya";
     else if (argc == 2)
-    {
-        f = stdin;
-    }
+        path = argv[1];
     else
     {
         log_msg(LOG_ERR, NULL, NO_POS, "invalid usage");
         return -1;
     }
 
-    string_t *buf = string_new();
-    int c;
-    while ((c = fgetc(f)) != EOF)
+    FILE *f = fopen(path, "rb");
+    if (f == NULL)
     {
-        char cc = c;
-        buf = string_push(buf, cc);
+        log_msg(LOG_ERR, NULL, NO_POS, "cannot open file");
+        return -1;
     }
 
-    dump_lex(buf);
+    dump_lex(f);
 }
 /*
 mut buf = ' '
