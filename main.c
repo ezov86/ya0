@@ -28,12 +28,12 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    string_t *buf = str_new();
+    string_t *buf = string_new();
     int c;
     while ((c = fgetc(f)) != EOF)
     {
         char cc = c;
-        buf = str_push(buf, cc);
+        buf = string_push(buf, cc);
     }
 
     dump_lex(buf);

@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
-#include <stdarg.h>
+#include "collections.h"
+#include "log.h"
 
 pos_t lex_tok_pos;
 token_t lex_tok;
@@ -38,7 +39,7 @@ void lex_init(char *_filename, string_t *_source, lex_options_t _options)
     source = _source;
 
     if (source->len > 0)
-        cur_c = STR_DATA(_source)[0];
+        cur_c = STRING_DATA(_source)[0];
     else
         cur_c = 0;
 
@@ -62,6 +63,7 @@ static void update_pos(bool forward)
 {
     /* For tabulation. Declared here to follow ISO C99. */
     int tab_diff;
+
     switch (cur_c)
     {
     case '\n':
@@ -114,7 +116,7 @@ static void nextc()
         return;
     }
 
-    cur_c = STR_DATA(source)[src_i];
+    cur_c = STRING_DATA(source)[src_i];
 }
 
 static void backc()
@@ -125,7 +127,7 @@ static void backc()
         return;
     }
 
-    cur_c = STR_DATA(source)[--src_i];
+    cur_c = STRING_DATA(source)[--src_i];
     update_pos(false);
 }
 
@@ -166,10 +168,10 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
 
 static bool eat_blank()
 {
-    string_t *str = str_new();
+    string_t *str = string_new();
     while (cur_c == ' ' || cur_c == '\t')
     {
-        str_push(str, cur_c);
+        str = string_push(str, cur_c);
         nextc();
     }
 
@@ -195,10 +197,10 @@ static bool eat_comment()
 
     nextc();
 
-    string_t *str = str_new();
+    string_t *str = string_new();
     while (cur_c != '\n' && cur_c != 0)
     {
-        str_push(str, cur_c);
+        str = string_push(str, cur_c);
         nextc();
     }
 
@@ -234,10 +236,10 @@ static bool eat_name()
     if (!(is_alpha(cur_c) || cur_c == '_'))
         return false;
 
-    string_t *str = str_new();
+    string_t *str = string_new();
     do
     {
-        str_push(str, cur_c);
+        str = string_push(str, cur_c);
         nextc();
     } while (is_alpha(cur_c) || cur_c == '_' || is_dig(cur_c));
 
@@ -285,12 +287,12 @@ static void escape_seq(string_t *str)
         {
             /* Overflow check is not needed (2 hex digits - max is 255). */
             uint8_t i = str_to_i(hex, 16);
-            str_push(str, i);
+            str = string_push(str, i);
         }
         else
         {
-            str_append(str, "\\x", 2);
-            str_append(str, hex, 2);
+            str = string_append(str, "\\x", 2);
+            str = string_append(str, hex, 2);
         }
 
         return;
@@ -300,8 +302,8 @@ static void escape_seq(string_t *str)
 
     if (!(options & LEX_UNESCAPE_STR))
     {
-        str_append(str, "\\", 2);
-        str_push(str, cur_c);
+        str = string_append(str, "\\", 2);
+        str = string_push(str, cur_c);
         return;
     }
 
@@ -331,7 +333,7 @@ static void escape_seq(string_t *str)
     }
 #undef CASE
 
-    str_push(str, unescaped);
+    str = string_push(str, unescaped);
 }
 
 static bool eat_string()
@@ -343,7 +345,7 @@ static bool eat_string()
 
     nextc();
 
-    string_t *str = str_new();
+    string_t *str = string_new();
     while (cur_c != quote)
     {
         switch (cur_c)
@@ -362,7 +364,7 @@ static bool eat_string()
             break;
 
         default:
-            str_append(str, &cur_c, sizeof(char));
+            str = string_append(str, &cur_c, sizeof(char));
         }
 
         nextc();
