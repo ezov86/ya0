@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "lex.h"
-#include "log.h"
+#include "../lib/log.h"
 
 #define CASE(a, b) \
     case (a):      \

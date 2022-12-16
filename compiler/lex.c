@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "collections.h"
-#include "log.h"
+#include "../lib/collections.h"
+#include "../lib/log.h"
 
 pos_t lex_tok_pos;
 token_t lex_tok;

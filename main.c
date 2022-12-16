@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include "collections.h"
-#include "log.h"
-#include "test.h"
+#include "lib/collections.h"
+#include "lib/log.h"
+#include "compiler/test.h"
 
 int main(int argc, char **argv)
 {
