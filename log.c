@@ -11,16 +11,21 @@
 vec_t *log_messages;
 string_t *log_file_path;
 
-static FILE *file;
+static stream_t *stream;
 
-void log_init(string_t *_file_path, FILE *_file)
+void log_init(string_t *_file_path, stream_t *_stream)
 {
-    log_messages = vec_new();
+    if (_stream != NULL)
+        log_messages = vec_new();
+    else
+        log_messages = NULL;
+
     log_file_path = _file_path;
-    file = _file;
+    stream = _stream;
 }
 
-void log_destroy() {
+void log_destroy()
+{
     free(log_messages);
 }
 
@@ -72,10 +77,10 @@ void log_add_msg(log_severity_t severity, pos_t pos, msg_id_t msg_id, ...)
     msg_buf[MSG_MAX_SIZE - 1] = 0;
 
     log_msg_t msg = {.severity = severity, .pos = pos, .id = msg_id};
-    if (file != NULL)
+    if (stream != NULL)
     {
-        fputs(msg_buf, file);
-        fputc('\n', file);
+        stream_write(msg_buf, 1, size, stream);
+        stream_putc('\n', stream);
         /* No need to save string message if file was given. */
         msg.str = NULL;
     }
