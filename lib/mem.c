@@ -3,14 +3,15 @@
 #include <string.h>
 
 #include "mem.h"
-#include "log.h"
+#include "../log.h"
 
 void *safe_calloc(size_t n, size_t s)
 {
     void *p = calloc(n, s);
     if (p == NULL)
     {
-        log_msg(LOG_ERR, NULL, NO_POS, "calloc error");
+        /* TODO: jump to exception handler using <setjmp.h>. */
+        puts("alloc error");
         exit(-1);
     }
 
@@ -22,7 +23,8 @@ void *safe_malloc(size_t s)
     void *p = malloc(s);
     if (p == NULL)
     {
-        log_msg(LOG_ERR, NULL, NO_POS, "malloc error");
+        /* TODO: jump to exception handler using <setjmp.h>. */
+        puts("alloc error");
         exit(-1);
     }
 
@@ -35,7 +37,8 @@ void *safe_realloc(void *ptr, size_t s)
 
     if (p == NULL)
     {
-        log_msg(LOG_ERR, NULL, NO_POS, "realloc error");
+        /* TODO: jump to exception handler using <setjmp.h>. */
+        puts("alloc error");
         exit(-1);
     }
 

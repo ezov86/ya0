@@ -6,7 +6,7 @@ import tempfile
 
 HOME_DIR = '.'
 TEST_PATH = 'tests/'
-BIN_PATH = 'build/ya'
+BIN_PATH = 'build/yac'
 
 
 """ Dirty unescape of C-like extended ASCII string. decode('unicode_escape') or eval() is not used because of unicode conversion. """

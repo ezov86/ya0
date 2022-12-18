@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_FLAGS "-g -std=c99 -pedantic-errors -DDEBUG")
 # set(CMAKE_C_FLAGS "-O3 -m32 -std=c99")
 
-add_executable(ya_compiler main.c compiler/lex.c compiler/test.c lib/mem.c lib/log.c lib/msg.c lib/vec.c lib/msg.c lib/diagn.c)
+add_executable(yac main.c compiler/lex.c compiler/test.c lib/mem.c log.c lib/vec.c lib/str.c msg.c)
 
 
 

@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "lex.h"
-#include "../lib/log.h"
+#include "../lib/str.h"
 
 #define CASE(a, b) \
     case (a):      \
@@ -127,7 +127,7 @@ static void dump_token(token_t tok, pos_t pos)
         {
         case TOK_VAL_STR:
             printf(" `");
-            print_str(&tok.val.s);
+            string_fprint(stdout, tok.val.s);
             puts("`");
             break;
         case TOK_VAL_INT64:
@@ -156,13 +156,15 @@ static void dump_token(token_t tok, pos_t pos)
 
 void dump_lex(FILE *src_file)
 {
-    lex_init(NULL, src_file, LEX_UNESCAPE_STR);
+    lex_init(src_file, LEX_UNESCAPE_STR);
 
     lex_next(LEX_ANY);
 
     while (lex_tok.lexeme != LEX_END)
     {
         dump_token(lex_tok, lex_tok_pos);
+        lex_free_token_val(&lex_tok);
+
         lex_next(LEX_ANY);
     }
 }

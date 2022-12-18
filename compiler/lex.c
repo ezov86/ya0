@@ -7,15 +7,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "../lib/collections.h"
-#include "../lib/log.h"
+#include "../lib/str.h"
+#include "../log.h"
+#include "../lib/mem.h"
+#include "../msg.h"
 
 pos_t lex_tok_pos;
 token_t lex_tok;
 bool lex_error;
 
 static char *filename;
-static uint16_t line, col;
+static pos_t pos;
 
 static FILE *src_file;
 
@@ -31,26 +33,21 @@ static int prev_col;
 
 static bool cur_tok_error;
 
-void lex_init(char *_filename, FILE *_src_file, lex_options_t _options)
+void lex_init(FILE *_src_file, lex_options_t _options)
 {
     lex_error = false;
 
-    filename = _filename;
-    line = 1;
-    col = 1;
+    pos.line = 1;
+    pos.col = 1;
 
     src_file = _src_file;
 
     /* Peeking first character. */
     int ic = getc(src_file);
-    if (ic != EOF)
-    {
-        cur_c = ic;
-        /* Return back if not EOF. */
-        // fseek(src_file, -1L, SEEK_CUR);
-    }
-    else
+    if (ic == EOF)
         cur_c = 0;
+    else
+        cur_c = ic;
 
     src_i = 0;
 
@@ -63,7 +60,7 @@ void lex_init(char *_filename, FILE *_src_file, lex_options_t _options)
     else
         tab_size = 4;
 
-    prev_col = 1;
+    prev_col = -1;
 
     cur_tok_error = false;
 }
@@ -78,17 +75,17 @@ static void update_pos(bool forward)
     case '\n':
         if (forward)
         {
-            line++;
-            prev_col = col;
-            col = 1;
+            pos.line++;
+            prev_col = pos.col;
+            pos.col = 1;
         }
         else
         {
             /* If prev_col == -1 then rewinding 2 lines back (not allowed). */
             assert(prev_col == -1);
 
-            line--;
-            col = prev_col;
+            pos.line--;
+            pos.col = prev_col;
             prev_col = -1;
         }
         break;
@@ -99,18 +96,18 @@ static void update_pos(bool forward)
         break;
 
     case '\t':
-        tab_diff = tab_size - ((col - 1) % tab_size);
+        tab_diff = tab_size - ((pos.col - 1) % tab_size);
         if (forward)
-            col += tab_diff;
+            pos.col += tab_diff;
         else
-            col -= tab_diff;
+            pos.col -= tab_diff;
         break;
 
     default:
         if (forward)
-            col++;
+            pos.col++;
         else
-            col--;
+            pos.col--;
         break;
     }
 }
@@ -156,11 +153,11 @@ static void backc()
 }
 
 /* Be careful in `if` statements. */
-#define ERROR(fmt, ...)                                              \
-    {                                                                \
-        cur_tok_error = true;                                        \
-        lex_error = true;                                            \
-        log_msg(LOG_ERR, filename, lex_tok_pos, fmt, ##__VA_ARGS__); \
+#define ERROR(msg_id, ...)                                \
+    {                                                     \
+        cur_tok_error = true;                             \
+        lex_error = true;                                 \
+        log_add_msg(LOG_ERR, pos, msg_id, ##__VA_ARGS__); \
     }
 
 static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
@@ -175,7 +172,7 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
         break;
 
     case TOK_VAL_STR:
-        lex_tok.val.s = *(string_t *)value;
+        lex_tok.val.s = (string_t *)value;
         break;
 
     case TOK_VAL_FLOAT:
@@ -192,17 +189,17 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
 
 static bool eat_blank()
 {
-    string_t str = STRING_NEW();
+    string_t *str = string_new();
     while (cur_c == ' ' || cur_c == '\t')
     {
-        string_push(&str, cur_c);
+        str = string_push(str, cur_c);
         nextc();
     }
 
-    if (str.len == 0)
+    if (str->len == 0)
         return false;
 
-    save_tok(LEX_BLANK, TOK_VAL_STR, &str);
+    save_tok(LEX_BLANK, TOK_VAL_STR, str);
 
     return true;
 }
@@ -221,14 +218,14 @@ static bool eat_comment()
 
     nextc();
 
-    string_t str = STRING_NEW();
+    string_t *str = string_new();
     while (cur_c != '\n' && cur_c != 0)
     {
-        string_push(&str, cur_c);
+        str = string_push(str, cur_c);
         nextc();
     }
 
-    save_tok(LEX_COMMENT, TOK_VAL_STR, &str);
+    save_tok(LEX_COMMENT, TOK_VAL_STR, str);
 
     return true;
 }
@@ -260,35 +257,44 @@ static bool eat_name()
     if (!(is_alpha(cur_c) || cur_c == '_'))
         return false;
 
-    string_t str = STRING_NEW();
+    string_t *str = string_new();
     do
     {
-        string_push(&str, cur_c);
+        str = string_push(str, cur_c);
         nextc();
     } while (is_alpha(cur_c) || cur_c == '_' || is_dig(cur_c));
 
-    save_tok(LEX_NAME, TOK_VAL_STR, &str);
+    save_tok(LEX_NAME, TOK_VAL_STR, str);
 
     return true;
 }
 
-static int64_t str_to_i(const char *str, int base)
+static int64_t str_to_i(string_t *str, int base)
 {
     char *endptr;
-    long long result = strtoll(str, &endptr, base);
+    long long result = strtoll(STRING_DATA(str), &endptr, base);
 
     if (errno == ERANGE)
     {
+        string_t *cutted_str = log_prepare_str(str);
         if (result == LLONG_MAX)
-            ERROR("`%s` is too big for int64", result)
-        else if (result == LLONG_MIN)
-            ERROR("`%s` is too small for int64", result)
+        {
+            ERROR(YA_COMP_LEX_TOO_BIG_INT, cutted_str);
+        }
+        else
+        {
+            ERROR(YA_COMP_LEX_TOO_SMALL_INT, cutted_str);
+        }
+
+        free(cutted_str);
         return 0;
     }
 
-    if (endptr == str || *endptr != '\0')
+    if (endptr == STRING_DATA(str) || *endptr != '\0')
     {
-        ERROR("`%s` is invalid integer", result)
+        string_t *cutted_str = log_prepare_str(str);
+        ERROR(YA_COMP_LEX_INVALID_INT, result);
+        free(cutted_str);
         return 0;
     }
 
@@ -300,24 +306,26 @@ static void escape_seq(string_t *str)
     /* Number. */
     if (cur_c == 'x')
     {
-        char hex[3];
+        string_t *hex = string_new();
         nextc();
-        hex[0] = cur_c;
+        hex = string_push(hex, cur_c);
         nextc();
-        hex[1] = cur_c;
-        hex[2] = 0;
+        hex = string_push(hex, cur_c);
+        hex = string_push(hex, "\0");
 
         if (options & LEX_UNESCAPE_STR)
         {
             /* Overflow check is not needed (2 hex digits - max is 255). */
             uint8_t i = str_to_i(hex, 16);
-            string_push(str, i);
+            str = string_push(str, i);
         }
         else
         {
-            string_append(str, "\\x", 2);
-            string_append(str, hex, 2);
+            str = string_append(str, "\\x", 2);
+            str = string_append(str, STRING_DATA(hex), 2);
         }
+
+        free(hex);
 
         return;
     }
@@ -326,8 +334,8 @@ static void escape_seq(string_t *str)
 
     if (!(options & LEX_UNESCAPE_STR))
     {
-        string_append(str, "\\", 2);
-        string_push(str, cur_c);
+        str = string_append(str, "\\", 2);
+        str = string_push(str, cur_c);
         return;
     }
 
@@ -352,12 +360,12 @@ static void escape_seq(string_t *str)
         CASE('"', '"')
         CASE('\\', '\\')
     default:
-        ERROR("invalid escape sequence `\\%c`", cur_c)
+        ERROR(YA_COMP_LEX_INVALID_ESC, cur_c);
         return;
     }
 #undef CASE
 
-    string_push(str, unescaped);
+    str = string_push(str, unescaped);
 }
 
 static bool eat_string()
@@ -369,26 +377,26 @@ static bool eat_string()
 
     nextc();
 
-    string_t str = STRING_NEW();
+    string_t *str = string_new();
     while (cur_c != quote)
     {
         switch (cur_c)
         {
         case 0:
-            ERROR("unexpected EOF");
+            ERROR(YA_COMP_LEX_UNEXPECTED_EOF);
             return true;
 
         case '\n':
-            ERROR("unexpected EOL");
+            ERROR(YA_COMP_LEX_UNEXPECTED_EOL);
             return true;
 
         case '\\':
             nextc();
-            escape_seq(&str);
+            escape_seq(str);
             break;
 
         default:
-            string_append(&str, &cur_c, sizeof(char));
+            str = string_push(str, cur_c);
         }
 
         nextc();
@@ -397,7 +405,7 @@ static bool eat_string()
     /* Closing quote. */
     nextc();
 
-    save_tok(LEX_STRING, TOK_VAL_STR, &str);
+    save_tok(LEX_STRING, TOK_VAL_STR, str);
 
     return true;
 }
@@ -417,8 +425,7 @@ repeat:
     cur_tok_error = false;
 
     /* Save starting position of token. */
-    lex_tok_pos.line = line;
-    lex_tok_pos.col = col;
+    lex_tok_pos = pos;
 
     RULE(eat_blank, LEX_BLANK)
     RULE(eat_comment, LEX_COMMENT)
@@ -430,7 +437,7 @@ repeat:
         lex_tok.lexeme = LEX_END;
     else
     {
-        ERROR("unknown character `%c`", cur_c);
+        ERROR(YA_COMP_LEX_INVALID_CHAR, cur_c);
         /* Skip character. */
         nextc();
         goto repeat;
@@ -438,4 +445,10 @@ repeat:
 
 end:
     return;
+}
+
+void lex_free_token_val(token_t *tok)
+{
+    if (tok->val_type == TOK_VAL_STR)
+        free(tok->val.s);
 }

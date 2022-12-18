@@ -4,8 +4,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "../lib/collections.h"
-#include "../lib/log.h"
+#include "../lib/str.h"
+#include "../log.h"
+
+#define YA_API(x) ya_##x
 
 typedef enum
 {
@@ -37,7 +39,7 @@ typedef struct
     {
         int64_t i;
         float f;
-        string_t s;
+        string_t *s;
     } val;
     lex_val_type_t val_type;
     lexeme_t lexeme;
@@ -103,21 +105,25 @@ typedef enum
     PUNC_ASSIGN_FLAG = 0x200
 } punc_t;
 
-extern pos_t lex_tok_pos;
-extern token_t lex_tok;
-extern bool lex_error;
-
 typedef enum
 {
     LEX_PARSE_NUMS = 1,
     LEX_UNESCAPE_STR = 1 << 1,
 
-    /* Табуляция по 4 символа по-умолчанию. */
+    /* 4 spaces for tab by default. */
     LEX_TAB2 = 1 << 2,
     LEX_TAB8 = 1 << 3,
 } lex_options_t;
 
-void lex_init(char *_filename, FILE *_src_file, lex_options_t _options);
+/* Current token position. */
+extern pos_t lex_tok_pos;
+/* Current token. */
+extern token_t lex_tok;
+/* Have lexical errors? */
+extern bool lex_error;
+
+void lex_init(FILE *_src_file, lex_options_t _options);
 void lex_next(lexeme_t expected);
+void lex_free_token_val(token_t *tok);
 
 #endif

@@ -1,26 +1,30 @@
-#include "collections.h"
+#include "vec.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "mem.h"
-#include "log.h"
 
-void vec_append(vec_t *vec, void *data, size_t size)
+vec_t *vec_new()
 {
-    size_t prev_len = vec->len;
+    vec_t *vec = safe_malloc(sizeof(vec_t) + VEC_BLK_SIZE);
+    vec->len = 0;
+    vec->capacity = VEC_BLK_SIZE;
+    return vec;
+}
+
+vec_t *vec_append(vec_t *vec, void *data, size_t size)
+{
+    size_t old_len = vec->len;
     vec->len += size;
     if (vec->len >= vec->capacity)
     {
-        if (vec->capacity == VEC_CONST_CAPACITY) {
-            /* Just tell info here, caller should handle it by itself. */
-            /* TODO: report errors by return code. */
-            log_msg(LOG_VERBOSE_INFO, NULL, NO_POS, "trying to resize constant vector");
-            return;
-        }
         vec->capacity = (vec->len / VEC_BLK_SIZE + 1) * VEC_BLK_SIZE;
-        vec->ptr = safe_realloc(vec->ptr, vec->capacity);
+        vec = safe_realloc(vec, sizeof(vec_t) + vec->capacity);
     }
 
-    memcpy((void *)((char *)vec->ptr + prev_len), data, size);
+    memcpy((void *)((char*)vec + sizeof(vec_t) + old_len), data, size);
+
+    /* If reallocation was done, returns new pointer. */
+    return vec;
 }
