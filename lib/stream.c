@@ -20,6 +20,8 @@ int stream_putc(int ch, stream_t *stream)
         return putc(ch, stream->data.f);
 
     vec_append(stream->data.vec, &ch, sizeof(char));
+    stream->vec_i++;
+
     return ch;
 }
 
@@ -35,6 +37,8 @@ size_t stream_read(void *buf, size_t size, size_t count, stream_t *stream)
         _size = rem;
 
     memcpy(buf, VEC_DATA(stream->data.vec, char), _size);
+    stream->vec_i += _size;
+
     return _size;
 }
 
@@ -43,8 +47,11 @@ size_t stream_write(const void *buf, size_t size, size_t count, stream_t *stream
     if (stream->data_type == STREAM_FILE)
         return fwrite(buf, size, count, stream->data.f);
 
-    vec_append(stream->data.vec, buf, size * count);
-    return size;
+    size_t _size = size * count;
+    vec_append(stream->data.vec, buf, _size);
+    stream->vec_i += _size;
+
+    return _size;
 }
 
 long stream_tell(stream_t *stream)
