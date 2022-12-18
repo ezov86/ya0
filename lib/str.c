@@ -21,7 +21,7 @@ string_t *string_escape(string_t *str)
     {
         if (isprint(ptr[i]))
         {
-            string_push(esc_str, ptr[i]);
+            esc_str = string_push(esc_str, ptr[i]);
             continue;
         }
 
@@ -52,7 +52,7 @@ string_t *string_escape(string_t *str)
             buf[0] = '\\';
             buf[1] = 'x';
             sprintf(buf, "%2x", ptr[i]);
-            string_append(esc_str, buf, 4);
+            esc_str = string_append(esc_str, buf, 4);
             break;
         }
 
