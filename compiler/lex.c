@@ -196,7 +196,10 @@ static bool eat_blank()
     }
 
     if (str->len == 0)
+    {
+        free(str);
         return false;
+    }
 
     save_tok(LEX_BLANK, TOK_VAL_STR, str);
 
