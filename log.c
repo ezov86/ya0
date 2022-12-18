@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 #include "msg.h"
 #include "lib/mem.h"
 
@@ -17,6 +18,10 @@ void log_init(string_t *_file_path, FILE *_file)
     log_messages = vec_new();
     log_file_path = _file_path;
     file = _file;
+}
+
+void log_destroy() {
+    free(log_messages);
 }
 
 void log_add_msg(log_severity_t severity, pos_t pos, msg_id_t msg_id, ...)

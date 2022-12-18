@@ -46,6 +46,7 @@ extern vec_t *log_messages;
 extern string_t *log_file_path;
 
 void log_init(string_t *file_path, FILE *file);
+void log_destroy();
 /* Any string that will be inserted with formatting should be prepared with log_prepare_str(). */
 void log_add_msg(log_severity_t severity, pos_t pos, msg_id_t id, ...);
 /* Prepare string_t before inserting by formatting into logging message: escape non-ASCII chars and cut.
