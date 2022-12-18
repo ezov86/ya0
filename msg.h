@@ -10,17 +10,17 @@ typedef enum {
     YA_LIB_ALLOC_FATAL_ERR,
     
     /* %c */
-    YA_COMP_LEX_INVALID_CHAR,
+    YAC_LEX_INVALID_CHAR,
     /* %c */
-    YA_COMP_LEX_INVALID_ESC,
+    YAC_LEX_INVALID_ESC,
     /* %s */
-    YA_COMP_LEX_INVALID_INT,
+    YAC_LEX_INVALID_INT,
     /* %s */
-    YA_COMP_LEX_TOO_BIG_INT,
+    YAC_LEX_TOO_BIG_INT,
     /* %s */
-    YA_COMP_LEX_TOO_SMALL_INT,
-    YA_COMP_LEX_UNEXPECTED_EOL,
-    YA_COMP_LEX_UNEXPECTED_EOF,
+    YAC_LEX_TOO_SMALL_INT,
+    YAC_LEX_UNEXPECTED_EOL,
+    YAC_LEX_UNEXPECTED_EOF,
 } msg_id_t;
 
 extern char *msgs[];

@@ -278,11 +278,11 @@ static int64_t str_to_i(string_t *str, int base)
         string_t *cutted_str = log_prepare_str(str);
         if (result == LLONG_MAX)
         {
-            ERROR(YA_COMP_LEX_TOO_BIG_INT, cutted_str);
+            ERROR(YAC_LEX_TOO_BIG_INT, cutted_str);
         }
         else
         {
-            ERROR(YA_COMP_LEX_TOO_SMALL_INT, cutted_str);
+            ERROR(YAC_LEX_TOO_SMALL_INT, cutted_str);
         }
 
         free(cutted_str);
@@ -292,7 +292,7 @@ static int64_t str_to_i(string_t *str, int base)
     if (endptr == STRING_DATA(str) || *endptr != '\0')
     {
         string_t *cutted_str = log_prepare_str(str);
-        ERROR(YA_COMP_LEX_INVALID_INT, result);
+        ERROR(YAC_LEX_INVALID_INT, result);
         free(cutted_str);
         return 0;
     }
@@ -359,7 +359,7 @@ static void escape_seq(string_t *str)
         CASE('"', '"')
         CASE('\\', '\\')
     default:
-        ERROR(YA_COMP_LEX_INVALID_ESC, cur_c);
+        ERROR(YAC_LEX_INVALID_ESC, cur_c);
         return;
     }
 #undef CASE
@@ -382,11 +382,11 @@ static bool eat_string()
         switch (cur_c)
         {
         case 0:
-            ERROR(YA_COMP_LEX_UNEXPECTED_EOF);
+            ERROR(YAC_LEX_UNEXPECTED_EOF);
             return true;
 
         case '\n':
-            ERROR(YA_COMP_LEX_UNEXPECTED_EOL);
+            ERROR(YAC_LEX_UNEXPECTED_EOL);
             return true;
 
         case '\\':
@@ -436,7 +436,7 @@ repeat:
         lex_tok.lexeme = LEX_END;
     else
     {
-        ERROR(YA_COMP_LEX_INVALID_CHAR, cur_c);
+        ERROR(YAC_LEX_INVALID_CHAR, cur_c);
         /* Skip character. */
         nextc();
         goto repeat;
