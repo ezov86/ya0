@@ -17,6 +17,6 @@ typedef struct
 
 /* Returns vec_t with one block allocated. */
 vec_t *vec_new();
-vec_t *vec_append(vec_t *vec, void *data, size_t size);
+vec_t *vec_append(vec_t *vec, const void *data, size_t size);
 
 #endif

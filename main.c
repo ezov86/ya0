@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "lib/str.h"
+#include "lib/stream.h"
 #include "log.h"
 #include "compiler/test.h"
 
@@ -24,8 +25,10 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    stream_t stream = STREAM_FROM_FILE(f);
+
     log_init(NULL, stderr);
-    dump_lex(f);
+    dump_lex(&stream);
 }
 /*
 mut buf = ' '

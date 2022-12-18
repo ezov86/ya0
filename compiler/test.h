@@ -2,7 +2,8 @@
 #define YA_TEST_H
 
 #include <stdio.h>
+#include "../lib/stream.h"
 
-void dump_lex(FILE *src_file);
+void dump_lex(stream_t *src_stream);
 
 #endif

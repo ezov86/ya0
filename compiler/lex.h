@@ -5,9 +5,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "../lib/str.h"
+#include "../lib/stream.h"
 #include "../log.h"
-
-#define YA_API(x) ya_##x
 
 typedef enum
 {
@@ -122,7 +121,7 @@ extern token_t lex_tok;
 /* Have lexical errors? */
 extern bool lex_error;
 
-void lex_init(FILE *_src_file, lex_options_t _options);
+void lex_init(stream_t *src_stream, lex_options_t options);
 void lex_next(lexeme_t expected);
 void lex_free_token_val(token_t *tok);
 

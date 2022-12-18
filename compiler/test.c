@@ -154,9 +154,9 @@ static void dump_token(token_t tok, pos_t pos)
 #undef CASE
 #undef ASS_BIT_OPER
 
-void dump_lex(FILE *src_file)
+void dump_lex(stream_t *src_stream)
 {
-    lex_init(src_file, LEX_UNESCAPE_STR);
+    lex_init(src_stream, LEX_UNESCAPE_STR);
 
     lex_next(LEX_ANY);
 

@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include "../lib/str.h"
 #include "../log.h"
-#include "../lib/mem.h"
 #include "../msg.h"
 
 pos_t lex_tok_pos;
@@ -19,7 +18,7 @@ bool lex_error;
 static char *filename;
 static pos_t pos;
 
-static FILE *src_file;
+static stream_t *src_stream;
 
 static lex_options_t options;
 
@@ -33,17 +32,17 @@ static int prev_col;
 
 static bool cur_tok_error;
 
-void lex_init(FILE *_src_file, lex_options_t _options)
+void lex_init(stream_t *_src_stream, lex_options_t _options)
 {
     lex_error = false;
 
     pos.line = 1;
     pos.col = 1;
 
-    src_file = _src_file;
+    src_stream = _src_stream;
 
     /* Peeking first character. */
-    int ic = getc(src_file);
+    int ic = stream_getc(src_stream);
     if (ic == EOF)
         cur_c = 0;
     else
@@ -116,7 +115,7 @@ static void nextc()
 {
     update_pos(true);
 
-    int ic = getc(src_file);
+    int ic = stream_getc(src_stream);
     if (ic == EOF)
     {
         cur_c = 0;
@@ -128,15 +127,15 @@ static void nextc()
 
 static void backc()
 {
-    if (ftell(src_file) == 0)
+    if (stream_tell(src_stream) == 0)
     {
         /* Begin of file, so we ran out of it. */
         cur_c = 0;
         return;
     }
 
-    fseek(src_file, -1, SEEK_CUR);
-    int ic = getc(src_file);
+    stream_seek(src_stream, -1, SEEK_CUR);
+    int ic = stream_getc(src_stream);
     if (ic == EOF)
     {
         /* Strange situation happened. */
@@ -145,7 +144,7 @@ static void backc()
     }
 
     /* ^^ getc() moves cursor forward in file stream, so go back again. */
-    fseek(src_file, -1, SEEK_CUR);
+    stream_seek(src_stream, -1, SEEK_CUR);
 
     cur_c = ic;
 

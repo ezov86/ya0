@@ -13,7 +13,7 @@ vec_t *vec_new()
     return vec;
 }
 
-vec_t *vec_append(vec_t *vec, void *data, size_t size)
+vec_t *vec_append(vec_t *vec, const void *data, size_t size)
 {
     size_t old_len = vec->len;
     vec->len += size;
