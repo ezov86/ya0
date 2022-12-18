@@ -26,10 +26,10 @@ typedef struct
 } stream_t;
 
 /* FILE *file */
-#define STREAM_FROM_FILE(file) ((stream_t){.data.f = file, .data_type = STREAM_FILE})
+#define STREAM_FROM_FILE(_file) ((stream_t){.data.f = _file, .data_type = STREAM_FILE})
 /* vec_t *vec
    Vector size should not be bigger than LONG_MAX, vector should not be changed during reading/writing. */
-#define STREAM_FROM_VEC(vec) ((stream_t){.data.vec = vec, .val.vec_i = 0, .data_type = STREAM_MEM})
+#define STREAM_FROM_VEC(_vec) ((stream_t){.data.vec = _vec, .vec_i = 0, .data_type = STREAM_MEM})
 
 int stream_getc(stream_t *stream);
 int stream_putc(int ch, stream_t *stream);
@@ -40,6 +40,6 @@ size_t stream_write(const void *buf, size_t size, size_t count, stream_t *stream
 long stream_tell(stream_t *stream);
 int stream_seek(stream_t *stream, long offset, int origin);
 /* Frees memory if vector was given. */
-int stream_close(stream_t *stream);
+int stream_destroy(stream_t *stream);
 
 #endif

@@ -88,7 +88,7 @@ int stream_seek(stream_t *stream, long offset, int origin)
     return 0;
 }
 
-int stream_close(stream_t *stream)
+int stream_destroy(stream_t *stream)
 {
     if (stream->data_type == STREAM_FILE)
         return fclose(stream->data.f);
