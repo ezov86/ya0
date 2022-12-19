@@ -29,7 +29,10 @@ typedef enum
     TOK_VAL_NONE,
     TOK_VAL_INT64,
     TOK_VAL_FLOAT,
-    TOK_VAL_STR
+    /* string_t * */
+    TOK_VAL_STRING,
+    /* char * */
+    TOK_VAL_CHARS
 } lex_val_type_t;
 
 typedef struct
@@ -123,6 +126,6 @@ extern bool lex_error;
 
 void lex_init(stream_t *src_stream, lex_options_t options);
 void lex_next(lexeme_t expected);
-void lex_free_token_val(token_t *tok);
+void lex_destroy_token(token_t *tok);
 
 #endif

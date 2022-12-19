@@ -26,8 +26,9 @@ int main(int argc, char **argv)
     }
 
     stream_t stream = STREAM_FROM_FILE(f);
+    stream_t err_stream = STREAM_FROM_FILE(stderr);
 
-    log_init(NULL, stderr);
+    log_init(NULL, &err_stream);
     dump_lex(&stream);
 }
 /*

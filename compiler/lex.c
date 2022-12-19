@@ -7,9 +7,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "../platform.h"
 #include "../lib/str.h"
 #include "../log.h"
 #include "../msg.h"
+
+#define TOK_STR_BLK_SIZE ((pl_blk_size_t)1)
 
 pos_t lex_tok_pos;
 token_t lex_tok;
@@ -170,7 +173,7 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
         lex_tok.val.i = *(int64_t *)value;
         break;
 
-    case TOK_VAL_STR:
+    case TOK_VAL_STRING:
         lex_tok.val.s = (string_t *)value;
         break;
 
@@ -188,7 +191,7 @@ static void save_tok(lexeme_t lexeme, lex_val_type_t val_type, void *value)
 
 static bool eat_blank()
 {
-    string_t *str = string_new();
+    string_t *str = string_new(TOK_STR_BLK_SIZE);
     while (cur_c == ' ' || cur_c == '\t')
     {
         str = string_push(str, cur_c);
@@ -201,7 +204,7 @@ static bool eat_blank()
         return false;
     }
 
-    save_tok(LEX_BLANK, TOK_VAL_STR, str);
+    save_tok(LEX_BLANK, TOK_VAL_STRING, str);
 
     return true;
 }
@@ -220,14 +223,14 @@ static bool eat_comment()
 
     nextc();
 
-    string_t *str = string_new();
+    string_t *str = string_new(TOK_STR_BLK_SIZE);
     while (cur_c != '\n' && cur_c != 0)
     {
         str = string_push(str, cur_c);
         nextc();
     }
 
-    save_tok(LEX_COMMENT, TOK_VAL_STR, str);
+    save_tok(LEX_COMMENT, TOK_VAL_STRING, str);
 
     return true;
 }
@@ -259,14 +262,14 @@ static bool eat_name()
     if (!(is_alpha(cur_c) || cur_c == '_'))
         return false;
 
-    string_t *str = string_new();
+    string_t *str = string_new(TOK_STR_BLK_SIZE);
     do
     {
         str = string_push(str, cur_c);
         nextc();
     } while (is_alpha(cur_c) || cur_c == '_' || is_dig(cur_c));
 
-    save_tok(LEX_NAME, TOK_VAL_STR, str);
+    save_tok(LEX_NAME, TOK_VAL_STRING, str);
 
     return true;
 }
@@ -303,12 +306,12 @@ static int64_t str_to_i(string_t *str, int base)
     return result;
 }
 
-static void escape_seq(string_t *str)
+static string_t *escape_seq(string_t *str)
 {
     /* Number. */
     if (cur_c == 'x')
     {
-        string_t *hex = string_new();
+        string_t *hex = string_new(TOK_STR_BLK_SIZE);
         nextc();
         hex = string_push(hex, cur_c);
         nextc();
@@ -329,7 +332,7 @@ static void escape_seq(string_t *str)
 
         free(hex);
 
-        return;
+        return str;
     }
 
     /* Else character escape. */
@@ -338,7 +341,7 @@ static void escape_seq(string_t *str)
     {
         str = string_append(str, "\\", 2);
         str = string_push(str, cur_c);
-        return;
+        return str;
     }
 
     char unescaped;
@@ -350,7 +353,7 @@ static void escape_seq(string_t *str)
 
     switch (cur_c)
     {
-        CASE('0', 0);
+        CASE('0', 0)
         CASE('a', '\a')
         CASE('b', '\b')
         CASE('f', '\f')
@@ -363,11 +366,12 @@ static void escape_seq(string_t *str)
         CASE('\\', '\\')
     default:
         ERROR(YAC_LEX_INVALID_ESC, cur_c);
-        return;
+        return str;
     }
 #undef CASE
 
     str = string_push(str, unescaped);
+    return str;
 }
 
 static bool eat_string()
@@ -379,7 +383,7 @@ static bool eat_string()
 
     nextc();
 
-    string_t *str = string_new();
+    string_t *str = string_new(TOK_STR_BLK_SIZE);
     while (cur_c != quote)
     {
         switch (cur_c)
@@ -394,7 +398,7 @@ static bool eat_string()
 
         case '\\':
             nextc();
-            escape_seq(str);
+            str = escape_seq(str);
             break;
 
         default:
@@ -407,7 +411,7 @@ static bool eat_string()
     /* Closing quote. */
     nextc();
 
-    save_tok(LEX_STRING, TOK_VAL_STR, str);
+    save_tok(LEX_STRING, TOK_VAL_STRING, str);
 
     return true;
 }
@@ -449,8 +453,8 @@ end:
     return;
 }
 
-void lex_free_token_val(token_t *tok)
+void lex_destroy_token(token_t *tok)
 {
-    if (tok->val_type == TOK_VAL_STR)
+    if (tok->val_type == TOK_VAL_STRING)
         free(tok->val.s);
 }

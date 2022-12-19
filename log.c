@@ -8,6 +8,8 @@
 #include "msg.h"
 #include "lib/mem.h"
 
+#define MESSAGES_BLK_SIZE ((pl_blk_size_t)sizeof(log_msg_t) * 4)
+
 vec_t *log_messages;
 string_t *log_file_path;
 
@@ -16,7 +18,7 @@ static stream_t *stream;
 void log_init(string_t *_file_path, stream_t *_stream)
 {
     if (_stream != NULL)
-        log_messages = vec_new();
+        log_messages = vec_new(MESSAGES_BLK_SIZE);
     else
         log_messages = NULL;
 

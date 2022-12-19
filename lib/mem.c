@@ -7,6 +7,7 @@
 
 void *safe_calloc(size_t n, size_t s)
 {
+    // printf("calloc %d*%d=%d\n", n, s, n * s);
     void *p = calloc(n, s);
     if (p == NULL)
     {
@@ -20,6 +21,7 @@ void *safe_calloc(size_t n, size_t s)
 
 void *safe_malloc(size_t s)
 {
+    // printf("malloc %d\n", s);
     void *p = malloc(s);
     if (p == NULL)
     {
@@ -33,6 +35,7 @@ void *safe_malloc(size_t s)
 
 void *safe_realloc(void *ptr, size_t s)
 {
+    // printf("realloc %d\n", s);
     void *p = realloc(ptr, s);
 
     if (p == NULL)

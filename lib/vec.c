@@ -5,23 +5,31 @@
 #include <assert.h>
 #include "mem.h"
 
-vec_t *vec_new()
+vec_t *vec_new(pl_blk_size_t blk_size)
 {
-    vec_t *vec = safe_malloc(sizeof(vec_t) + VEC_BLK_SIZE);
+    vec_t *vec = safe_malloc(sizeof(vec_t) + blk_size);
     vec->len = 0;
-    vec->capacity = VEC_BLK_SIZE;
+    vec->blks = 1;
+    vec->blk_size = blk_size;
+    return vec;
+}
+
+vec_t *vec_resize(vec_t *vec, size_t new_len)
+{
+    vec->len = new_len;
+    if (new_len >= vec->blks * vec->blk_size)
+    {
+        vec->blks = (new_len / vec->blk_size + 1);
+        vec = safe_realloc(vec, sizeof(vec_t) + vec->blks * vec->blk_size);
+    }
+
     return vec;
 }
 
 vec_t *vec_append(vec_t *vec, const void *data, size_t size)
 {
     size_t old_len = vec->len;
-    vec->len += size;
-    if (vec->len >= vec->capacity)
-    {
-        vec->capacity = (vec->len / VEC_BLK_SIZE + 1) * VEC_BLK_SIZE;
-        vec = safe_realloc(vec, sizeof(vec_t) + vec->capacity);
-    }
+    vec = vec_resize(vec, vec->len + size);
 
     memcpy((void *)((char *)vec + sizeof(vec_t) + old_len), data, size);
 

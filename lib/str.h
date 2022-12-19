@@ -6,8 +6,8 @@
 
 typedef vec_t string_t;
 
-/* -> string_t * */
-#define string_new() vec_new()
+/* pl_blk_size_t blk_size -> string_t * */
+#define string_new(blk_size) vec_new(blk_size)
 /* string_t *str, char c -> string_t *str
    c should be lvalue. */
 #define string_push(str, c) vec_append(str, &(c), sizeof(char))

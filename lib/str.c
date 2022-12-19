@@ -14,7 +14,7 @@ void string_fprint(FILE *f, string_t *str)
 
 string_t *string_escape(string_t *str)
 {
-    string_t *esc_str = string_new();
+    string_t *esc_str = string_new(str->blk_size);
     char *ptr = STRING_DATA(str);
 
     for (size_t i = 0; i <= str->len; i++)

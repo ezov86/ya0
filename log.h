@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "lib/stream.h"
 #include "lib/str.h"
 #include "msg.h"
 
@@ -27,7 +28,7 @@ typedef struct
     log_severity_t severity;
     pos_t pos;
     msg_id_t id;
-    /* If no file was given, saving formatted message here, else NULL. */
+    /* If no stream was given, saving formatted message here, else NULL. */
     char *str;
 } log_msg_t;
 
@@ -35,7 +36,7 @@ typedef struct
 {
     string_t *file_path;
     vec_t *messages;
-    FILE *file;
+    stream_t *stream;
 } log_bag_t;
 
 #define LOG_NO_POS ((pos_t){.line = 0, .col = 0})
@@ -45,7 +46,7 @@ extern vec_t *log_messages;
 /* Path to compiling file. */
 extern string_t *log_file_path;
 
-void log_init(string_t *file_path, FILE *file);
+void log_init(string_t *file_path, stream_t *stream);
 void log_destroy();
 /* Any string that will be inserted with formatting should be prepared with log_prepare_str(). */
 void log_add_msg(log_severity_t severity, pos_t pos, msg_id_t id, ...);

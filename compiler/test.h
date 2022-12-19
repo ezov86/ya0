@@ -1,8 +1,8 @@
-#ifndef YA_TEST_H
-#define YA_TEST_H
+#ifndef YA_COMPILER_TEST_H
+#define YA_COMPILER_TEST_H
 
 #include <stdio.h>
-#include "../lib/stream.h"
+#include "../lib/str.h"
 
 void dump_lex(stream_t *src_stream);
 
